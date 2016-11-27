@@ -4,7 +4,7 @@ import numpy as np
 from gensim.models import word2vec
 
 def _padding(document_list, max_len):
-    
+
     new_document_list = []
     for doc in document_list:
         pad_line = ['<pad>' for i in range(max_len - len(doc))] #全ての文書の単語数を合わせる
@@ -14,10 +14,10 @@ def _padding(document_list, max_len):
 """
 word2vecのモデルまでPATH
 """
-bin_filename = '..{sep}..{sep}corpus{sep}google-w2v-model{sep}GoogleNews-vectors-negative300.bin'.format(sep=os.sep)
+bin_filename = 'GoogleNews-vectors-negative300.bin'
 
 def load_data(fname):
-    
+
     print 'input file name:', fname
 
     print 'loading word2vec model...'
@@ -36,7 +36,7 @@ def load_data(fname):
         label = sample[0]
         target.append(label) #ラベル
         document_list.append(sample[1].split()) #文書ごとの単語リスト
-    
+
     """
     読み込んだword2vec modelに定義されていない単語を<unk>に置換したい。
     """
@@ -54,7 +54,7 @@ def load_data(fname):
         #文書の最大長を求める(padding用)
         if len(rev_doc) > max_len:
             max_len = len(rev_doc)
-    
+
     """
     文長をpaddingにより合わせる
     """
@@ -76,14 +76,14 @@ def load_data(fname):
         source.append(doc_vec)
 
     dataset = {}
-    dataset['target'] = np.array(target)    
-    dataset['source'] = np.array(source)    
+    dataset['target'] = np.array(target)
+    dataset['source'] = np.array(source)
 
     return dataset, max_len, vector_length
 
 
 def load_data_with_rand_vec(fname):
-    
+
     print 'input file name:', fname
 
     print 'loading word2vec model...'
@@ -99,7 +99,7 @@ def load_data_with_rand_vec(fname):
         label = sample[0]
         target.append(label) #ラベル
         document_list.append(sample[1].split()) #文書ごとの単語リスト
-    
+
     max_len = 0
     rev_document_list = [] #未知語処理後のdocument list
     for doc in document_list:
@@ -114,10 +114,10 @@ def load_data_with_rand_vec(fname):
         #文書の最大長を求める(padding用)
         if len(rev_doc) > max_len:
             max_len = len(rev_doc)
-    
+
     #文書長をpaddingにより合わせる
     rev_document_list = _padding(rev_document_list, max_len)
-    
+
     width = 0 #各単語の次元数
     #文書の特徴ベクトル化
     for doc in rev_document_list:
@@ -129,8 +129,7 @@ def load_data_with_rand_vec(fname):
         source.append(doc_vec)
 
     dataset = {}
-    dataset['target'] = np.array(target)    
-    dataset['source'] = np.array(source)    
+    dataset['target'] = np.array(target)
+    dataset['source'] = np.array(source)
 
     return dataset, max_len, width
-
