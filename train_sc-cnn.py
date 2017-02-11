@@ -21,7 +21,7 @@ CNNによるテキスト分類 (posi-nega)
 """
 
 def get_parser():
-    
+
     DEF_GPU = -1
     DEF_DATA = "..{sep}Data{sep}input.dat".format(sep=os.sep)
     DEF_EPOCH = 100
@@ -29,18 +29,17 @@ def get_parser():
 
     #引数の設定
     parser = argparse.ArgumentParser()
+    parser.add_argument('data',
+                        type=str,
+                        default=DEF_DATA,
+                        metavar='PATH',
+                        help='an input data file')
     parser.add_argument('--gpu',
                         dest='gpu',
                         type=int,
                         default=DEF_GPU,
                         metavar='CORE_NUMBER',
                         help='use CORE_NUMBER gpu (default: use cpu)')
-    parser.add_argument('--data',
-                        dest='data',
-                        type=str,
-                        default=DEF_DATA,
-                        metavar='PATH',
-                        help='an input data file')
     parser.add_argument('--epoch',
                         dest='epoch',
                         type=int,
@@ -91,7 +90,7 @@ def train(args):
     # Prepare dataset
     dataset, height, width = util.load_data(args.data)
     #dataset, height, width = util.load_data_with_rand_vec(args.data)
-    
+
     print 'height (max length of sentences):', height
     print 'width (size of wordembedding vecteor ):', width
 
@@ -105,14 +104,14 @@ def train(args):
 
     # (nsample, channel, height, width) の4次元テンソルに変換
     input_channel = 1
-    x_train = x_train.reshape(len(x_train), input_channel, height, width) 
+    x_train = x_train.reshape(len(x_train), input_channel, height, width)
     x_test  = x_test.reshape(len(x_test), input_channel, height, width)
 
     n_label = 2 # ラベル数
     filter_height = [3,4,5] # フィルタの高さ
     baseline_filter_height = [3]
     filter_width  = width # フィルタの幅 (embeddingの次元数)
-    output_channel = 100 
+    output_channel = 100
     decay = 0.0001 # 重み減衰
     grad_clip = 3  # gradient norm threshold to clip
     max_sentence_len = height # max length of sentences
@@ -134,7 +133,7 @@ def train(args):
                       filter_width,
                       n_label,
                       max_sentence_len)
- 
+
     # Setup optimizer
     optimizer = optimizers.AdaDelta()
     optimizer.setup(model)
@@ -152,7 +151,7 @@ def train(args):
     for epoch in six.moves.range(1, n_epoch + 1):
 
         print 'epoch', epoch, '/', n_epoch
-        
+
         # training
         perm = np.random.permutation(N) #ランダムな整数列リストを取得
         sum_train_loss     = 0.0
@@ -162,16 +161,16 @@ def train(args):
             #perm を使い x_train, y_trainからデータセットを選択 (毎回対象となるデータは異なる)
             x = chainer.Variable(xp.asarray(x_train[perm[i:i + batchsize]])) #source
             t = chainer.Variable(xp.asarray(y_train[perm[i:i + batchsize]])) #target
-            
+
             model.zerograds()
 
             y = model(x)
             loss = F.softmax_cross_entropy(y, t) # 損失の計算
             accuracy = F.accuracy(y, t) # 正解率の計算
-            
+
             sum_train_loss += loss.data * len(t)
             sum_train_accuracy += accuracy.data * len(t)
-            
+
             # 最適化を実行
             loss.backward()
             optimizer.update()
@@ -186,18 +185,18 @@ def train(args):
             # all test data
             x = chainer.Variable(xp.asarray(x_test[i:i + batchsize]))
             t = chainer.Variable(xp.asarray(y_test[i:i + batchsize]))
-            
+
             y = model(x, False)
             loss = F.softmax_cross_entropy(y, t) # 損失の計算
             accuracy = F.accuracy(y, t) # 正解率の計算
- 
+
             sum_test_loss += loss.data * len(t)
             sum_test_accuracy += accuracy.data * len(t)
 
         print(' test mean loss={}, accuracy={}'.format(sum_test_loss / N_test, sum_test_accuracy / N_test)) #平均誤差
 
         sys.stdout.flush()
-        
+
     return model, optimizer
 
 def main():
@@ -212,4 +211,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
